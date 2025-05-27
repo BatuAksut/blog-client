@@ -14,7 +14,7 @@ const PostAdd: React.FC = () => {
 
     const token = localStorage.getItem('token');
     if (!token) {
-      setError('Önce giriş yapmalısın reis!');
+      setError('Önce giriş yapmalısın!');
       return;
     }
 
