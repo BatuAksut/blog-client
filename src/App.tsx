@@ -6,6 +6,9 @@ import { createTheme, ThemeProvider, CssBaseline } from '@mui/material';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import PostList from './components/PostList';
+import Login from './components/Login';
+import PostDetail from './components/PostDetail';
+import PostAdd from './components/PostAdd';
 
 const About: React.FC = () => (
   <div style={{ padding: '2rem' }}>
@@ -38,14 +41,15 @@ function App() {
       mode: mode,
     },
     typography: {
-    fontFamily: 'Inter, sans-serif',
-    h1: {
-    fontFamily: 'Merriweather, serif', 
-    body1: {
+  fontFamily: 'Inter, sans-serif',
+  h1: {
+    fontFamily: 'Merriweather, serif',
+  },
+  body1: {
     fontFamily: 'Inter, sans-serif',
   }
-  },
-  },
+}
+,
   }), [mode]);
 
   return (
@@ -62,6 +66,10 @@ function App() {
               <Route path="/" element={<PostList />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/post/:id" element={<PostDetail />} />
+              <Route path="/add-post" element={<PostAdd />} />
+
             </Routes>
           </main>
           <Footer mode={mode} />

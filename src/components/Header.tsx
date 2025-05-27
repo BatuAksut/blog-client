@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BookOpen, Menu } from 'lucide-react';
 import {
   IconButton,
@@ -21,26 +21,32 @@ const Header: React.FC<HeaderProps> = ({ mode, toggleMode }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const navigate = useNavigate();
 
   const navItems = ['Home', 'About', 'Contact'];
+  const token = localStorage.getItem('token');
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
 
   return (
     <header
       style={{
         backgroundColor: theme.palette.background.paper,
-         boxShadow:
-      mode === 'light'
-        ? '0 2px 4px rgba(0, 0, 0, 0.1)' // Light mode gölge
-        : '0 2px 4px rgba(0, 0, 0, 0.6)', // Dark mode daha belirgin
-    borderBottom: `1px solid ${
-      mode === 'light'
-        ? 'rgba(0, 0, 0, 0.1)'
-        : 'rgba(255, 255, 255, 0.1)'
-    }`, // Alt çizgiyle ayrım
-    backdropFilter: 'blur(4px)', // Hafif transparanlık için
-    position: 'sticky',
-    top: 0,
-    zIndex: 1100, // Üstte dursun
+        boxShadow:
+          mode === 'light'
+            ? '0 2px 4px rgba(0, 0, 0, 0.1)'
+            : '0 2px 4px rgba(0, 0, 0, 0.6)',
+        borderBottom:
+          mode === 'light'
+            ? '1px solid rgba(0, 0, 0, 0.1)'
+            : '1px solid rgba(255, 255, 255, 0.1)',
+        backdropFilter: 'blur(4px)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 1100,
       }}
     >
       <div
@@ -77,7 +83,7 @@ const Header: React.FC<HeaderProps> = ({ mode, toggleMode }) => {
 
         {/* Sağ taraf: Menü */}
         {!isMobile ? (
-          <nav>
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
             <ul
               style={{
                 display: 'flex',
@@ -101,6 +107,35 @@ const Header: React.FC<HeaderProps> = ({ mode, toggleMode }) => {
                 </li>
               ))}
             </ul>
+
+            {token ? (
+              <button
+                onClick={handleLogout}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: theme.palette.error.main,
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
+              >
+                Logout
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: theme.palette.primary.main,
+                  color: '#fff',
+                  borderRadius: '4px',
+                  textDecoration: 'none',
+                }}
+              >
+                Login
+              </Link>
+            )}
           </nav>
         ) : (
           <>
@@ -112,22 +147,39 @@ const Header: React.FC<HeaderProps> = ({ mode, toggleMode }) => {
             </IconButton>
             <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
               <List sx={{ width: 200, backgroundColor: theme.palette.background.paper }}>
-  {navItems.map((item) => (
-    <ListItem
-      button
-      key={item}
-      component={Link}
-      to={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
-      onClick={() => setDrawerOpen(false)}
-    >
-      <ListItemText
-        primary={item}
-        primaryTypographyProps={{ color: theme.palette.text.primary }}
-      />
-    </ListItem>
-  ))}
-</List>
+                {navItems.map((item) => (
+                  <ListItem
+                    button
+                    key={item}
+                    component={Link}
+                    to={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
+                    onClick={() => setDrawerOpen(false)}
+                  >
+                    <ListItemText
+                      primary={item}
+                      primaryTypographyProps={{ color: theme.palette.text.primary }}
+                    />
+                  </ListItem>
+                ))}
 
+                {token ? (
+                  <ListItem button onClick={() => {
+                    handleLogout();
+                    setDrawerOpen(false);
+                  }}>
+                    <ListItemText primary="Logout" />
+                  </ListItem>
+                ) : (
+                  <ListItem
+                    button
+                    component={Link}
+                    to="/login"
+                    onClick={() => setDrawerOpen(false)}
+                  >
+                    <ListItemText primary="Login" />
+                  </ListItem>
+                )}
+              </List>
             </Drawer>
           </>
         )}
