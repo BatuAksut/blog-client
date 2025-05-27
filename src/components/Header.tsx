@@ -8,6 +8,7 @@ import {
   ListItem,
   ListItemText,
   useMediaQuery,
+  Button,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
@@ -81,7 +82,7 @@ const Header: React.FC<HeaderProps> = ({ mode, toggleMode }) => {
           </IconButton>
         </div>
 
-        {/* Sağ taraf: Menü */}
+        {/* Sağ taraf: Menü + PostAdd (giriş varsa) */}
         {!isMobile ? (
           <nav style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
             <ul
@@ -107,6 +108,17 @@ const Header: React.FC<HeaderProps> = ({ mode, toggleMode }) => {
                 </li>
               ))}
             </ul>
+
+            {/* Eğer token varsa PostAdd butonu göster */}
+            {token && (
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => navigate('/add-post')}
+              >
+                Yeni Post
+              </Button>
+            )}
 
             {token ? (
               <button
@@ -161,6 +173,18 @@ const Header: React.FC<HeaderProps> = ({ mode, toggleMode }) => {
                     />
                   </ListItem>
                 ))}
+
+                {/* Mobilde de giriş varsa yeni post linki */}
+                {token && (
+                  <ListItem
+                    button
+                    component={Link}
+                    to="/add-post"
+                    onClick={() => setDrawerOpen(false)}
+                  >
+                    <ListItemText primary="Yeni Post" />
+                  </ListItem>
+                )}
 
                 {token ? (
                   <ListItem button onClick={() => {
