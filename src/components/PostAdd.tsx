@@ -1,10 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { 
+  Box, 
+  Button, 
+  TextField, 
+  Typography, 
+  CircularProgress,
+  useTheme
+} from '@mui/material';
 
 const PostAdd: React.FC = () => {
+  const theme = useTheme();  // <--- Temayı aldık
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [image, setImage] = useState<File | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -18,17 +27,23 @@ const PostAdd: React.FC = () => {
       return;
     }
 
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('content', content);
+    if (image) {
+      formData.append('image', image);
+    }
+
     setLoading(true);
     setError('');
 
     try {
-      const response = await fetch('https://localhost:7171/api/BlogPosts', {
+      const response = await fetch('https://localhost:7171/api/BlogPosts/with-image', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ title, content, imageUrl }),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -36,7 +51,6 @@ const PostAdd: React.FC = () => {
         throw new Error(errorData.message || 'Post ekleme başarısız oldu.');
       }
 
-      // Başarılıysa anasayfaya yönlendir
       navigate('/');
     } catch (err: any) {
       setError(err.message);
@@ -46,30 +60,82 @@ const PostAdd: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ maxWidth: 500, margin: '2rem auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <input
-        type="text"
-        placeholder="Başlık"
-        value={title}
-        onChange={e => setTitle(e.target.value)}
-        required
+    <Box 
+      component="form" 
+      onSubmit={handleSubmit} 
+      sx={{ 
+        maxWidth: 500, 
+        mx: 'auto', 
+        mt: 4, 
+        p: 3,
+        boxShadow: 3,
+        borderRadius: 2,
+        backgroundColor: theme.palette.background.paper,  // tema uyumlu arka plan
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: 2,
+        color: theme.palette.text.primary,  // tema uyumlu yazı rengi
+      }}
+    >
+      <Typography variant="h5" component="h1" textAlign="center" mb={2}>
+        Yeni Post Ekle
+      </Typography>
+      
+      <TextField 
+        label="Başlık" 
+        variant="outlined" 
+        value={title} 
+        onChange={e => setTitle(e.target.value)} 
+        required 
+        InputLabelProps={{ style: { color: theme.palette.text.primary } }}
+        inputProps={{ style: { color: theme.palette.text.primary } }}
       />
-      <textarea
-        placeholder="İçerik"
-        value={content}
-        onChange={e => setContent(e.target.value)}
-        rows={6}
-        required
+      
+      <TextField 
+        label="İçerik" 
+        variant="outlined" 
+        multiline 
+        rows={6} 
+        value={content} 
+        onChange={e => setContent(e.target.value)} 
+        required 
+        InputLabelProps={{ style: { color: theme.palette.text.primary } }}
+        inputProps={{ style: { color: theme.palette.text.primary } }}
       />
-      <input
-        type="text"
-        placeholder="Görsel URL (opsiyonel)"
-        value={imageUrl}
-        onChange={e => setImageUrl(e.target.value)}
-      />
-      <button type="submit" disabled={loading}>{loading ? 'Ekleniyor...' : 'Postu Ekle'}</button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-    </form>
+      
+      <Button
+        variant="contained"
+        component="label"
+      >
+        {image ? 'Resim Seçildi' : 'Resim Yükle'}
+        <input
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={e => {
+            const file = e.target.files?.[0];
+            setImage(file || null);
+          }}
+        />
+      </Button>
+      
+      {loading ? (
+        <Button variant="contained" disabled sx={{ mt: 1 }}>
+          <CircularProgress size={24} color="inherit" />
+          &nbsp;Ekleniyor...
+        </Button>
+      ) : (
+        <Button type="submit" variant="contained" sx={{ mt: 1 }}>
+          Postu Ekle
+        </Button>
+      )}
+
+      {error && (
+        <Typography color="error" mt={1} textAlign="center" sx={{ color: theme.palette.error.main }}>
+          {error}
+        </Typography>
+      )}
+    </Box>
   );
 };
 
