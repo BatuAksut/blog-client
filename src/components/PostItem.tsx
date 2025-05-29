@@ -1,14 +1,23 @@
 import React from 'react';
-import { Card, CardMedia, CardContent, Typography, useTheme, IconButton } from '@mui/material';
+import {
+  Card,
+  CardMedia,
+  CardContent,
+  Typography,
+  useTheme,
+  IconButton,
+  Box,
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
 interface PostItemProps {
   id: string;
   title: string;
   content: string;
   imageUrl: string;
-  onDelete: (id: string) => void; // Yeni prop
+  onDelete: (id: string) => void;
 }
 
 const PostItem: React.FC<PostItemProps> = ({ id, title, content, imageUrl, onDelete }) => {
@@ -20,22 +29,36 @@ const PostItem: React.FC<PostItemProps> = ({ id, title, content, imageUrl, onDel
   };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Kart tıklamasını engelle
+    e.stopPropagation();
     onDelete(id);
+  };
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/posts/edit/${id}`);
   };
 
   return (
     <Card
-      sx={{ width: 300, height: 250, display: 'flex', flexDirection: 'column', cursor: 'pointer', position: 'relative' }}
+      sx={{
+        width: 300,
+        height: 300,
+        display: 'flex',
+        flexDirection: 'column',
+        cursor: 'pointer',
+        position: 'relative',
+      }}
       onClick={handleClick}
     >
-      <IconButton
-        aria-label="delete"
-        onClick={handleDeleteClick}
-        sx={{ position: 'absolute', top: 5, right: 5, zIndex: 10 }}
-      >
-        <DeleteIcon />
-      </IconButton>
+      <Box sx={{ position: 'absolute', top: 5, right: 5, zIndex: 10, display: 'flex', gap: 1 }}>
+        <IconButton aria-label="edit" onClick={handleEditClick}>
+          <EditIcon />
+        </IconButton>
+        <IconButton aria-label="delete" onClick={handleDeleteClick}>
+          <DeleteIcon />
+        </IconButton>
+      </Box>
+
       <CardMedia component="img" height="140" image={imageUrl} alt={title} />
       <CardContent sx={{ flex: 1, overflow: 'hidden' }}>
         <Typography
@@ -43,6 +66,13 @@ const PostItem: React.FC<PostItemProps> = ({ id, title, content, imageUrl, onDel
           variant="h6"
           component="div"
           color={theme.palette.text.primary}
+          sx={{
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+          }}
         >
           {title}
         </Typography>

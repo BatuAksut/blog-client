@@ -9,6 +9,7 @@ import {
   ListItemText,
   useMediaQuery,
   Button,
+  Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
@@ -24,11 +25,13 @@ const Header: React.FC<HeaderProps> = ({ mode, toggleMode }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
 
-  const navItems = ['Home', 'About', 'Contact'];
   const token = localStorage.getItem('token');
+  const firstname = localStorage.getItem('firstname');
+  const lastname = localStorage.getItem('lastname');
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('username');
     navigate('/login');
   };
 
@@ -60,7 +63,7 @@ const Header: React.FC<HeaderProps> = ({ mode, toggleMode }) => {
           alignItems: 'center',
         }}
       >
-        {/* Sol taraf: Logo + Dark mode toggle */}
+        {/* Logo + Tema Değiştirici */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <Link
             to="/"
@@ -82,71 +85,61 @@ const Header: React.FC<HeaderProps> = ({ mode, toggleMode }) => {
           </IconButton>
         </div>
 
-        {/* Sağ taraf: Menü + PostAdd (giriş varsa) */}
+        {/* Menü */}
         {!isMobile ? (
           <nav style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-            <ul
-              style={{
-                display: 'flex',
-                gap: '1.5rem',
-                listStyle: 'none',
-                margin: 0,
-                padding: 0,
-              }}
-            >
-              {navItems.map((item) => (
-                <li key={item}>
-                  <Link
-                    to={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
-                    style={{
-                      color: theme.palette.text.secondary,
-                      textDecoration: 'none',
-                    }}
-                  >
-                    {item}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-
-            {/* Eğer token varsa PostAdd butonu göster */}
             {token && (
               <Button
                 variant="contained"
                 color="primary"
                 onClick={() => navigate('/add-post')}
+                sx={{ textTransform: 'none', fontWeight: 600 }}
               >
-                Yeni Post
+                New Post
               </Button>
             )}
 
-            {token ? (
-              <button
-                onClick={handleLogout}
-                style={{
-                  padding: '0.5rem 1rem',
-                  backgroundColor: theme.palette.error.main,
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
+            {token && firstname && lastname && (
+              <Typography
+                sx={{
+                  fontWeight: 600,
+                  color: mode === 'dark' ? '#e0e0e0' : '#333',
                 }}
+              >
+                Welcome, {firstname} {lastname}
+              </Typography>
+            )}
+
+            {token ? (
+              <Button
+                onClick={handleLogout}
+                color="error"
+                variant="contained"
+                sx={{ textTransform: 'none', fontWeight: 600 }}
               >
                 Logout
-              </button>
+              </Button>
             ) : (
-              <Link
-                to="/login"
-                style={{
-                  padding: '0.5rem 1rem',
-                  backgroundColor: theme.palette.primary.main,
-                  color: '#fff',
-                  borderRadius: '4px',
-                  textDecoration: 'none',
-                }}
-              >
-                Login
-              </Link>
+              <>
+                <Button
+                  component={Link}
+                  to="/login"
+                  variant="contained"
+                  color="primary"
+                  sx={{ textTransform: 'none', fontWeight: 600 }}
+                >
+                  Login
+                </Button>
+                <Button
+                  component={Link}
+                  to="/register"
+                  variant="outlined"
+                  color="primary"
+                  sx={{ textTransform: 'none', fontWeight: 600 }}
+                >
+                  Register
+                </Button>
+              </>
             )}
           </nav>
         ) : (
@@ -157,24 +150,12 @@ const Header: React.FC<HeaderProps> = ({ mode, toggleMode }) => {
             >
               <Menu />
             </IconButton>
-            <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+            <Drawer
+              anchor="right"
+              open={drawerOpen}
+              onClose={() => setDrawerOpen(false)}
+            >
               <List sx={{ width: 200, backgroundColor: theme.palette.background.paper }}>
-                {navItems.map((item) => (
-                  <ListItem
-                    button
-                    key={item}
-                    component={Link}
-                    to={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
-                    onClick={() => setDrawerOpen(false)}
-                  >
-                    <ListItemText
-                      primary={item}
-                      primaryTypographyProps={{ color: theme.palette.text.primary }}
-                    />
-                  </ListItem>
-                ))}
-
-                {/* Mobilde de giriş varsa yeni post linki */}
                 {token && (
                   <ListItem
                     button
@@ -182,26 +163,84 @@ const Header: React.FC<HeaderProps> = ({ mode, toggleMode }) => {
                     to="/add-post"
                     onClick={() => setDrawerOpen(false)}
                   >
-                    <ListItemText primary="Yeni Post" />
+                    <ListItemText
+                      primary="New Post"
+                      primaryTypographyProps={{
+                        color:
+                          theme.palette.mode === 'dark'
+                            ? theme.palette.primary.light
+                            : theme.palette.primary.main,
+                        fontWeight: 600,
+                      }}
+                    />
+                  </ListItem>
+                )}
+
+                {token && firstname && lastname && (
+                  <ListItem>
+                    <ListItemText
+                      primary={`Welcome, ${firstname} ${lastname}`}
+                      primaryTypographyProps={{
+                        fontWeight: 500,
+                        color: theme.palette.text.secondary,
+                      }}
+                    />
                   </ListItem>
                 )}
 
                 {token ? (
-                  <ListItem button onClick={() => {
-                    handleLogout();
-                    setDrawerOpen(false);
-                  }}>
-                    <ListItemText primary="Logout" />
-                  </ListItem>
-                ) : (
                   <ListItem
                     button
-                    component={Link}
-                    to="/login"
-                    onClick={() => setDrawerOpen(false)}
+                    onClick={() => {
+                      handleLogout();
+                      setDrawerOpen(false);
+                    }}
                   >
-                    <ListItemText primary="Login" />
+                    <ListItemText
+                      primary="Logout"
+                      primaryTypographyProps={{
+                        color: theme.palette.error.main,
+                        fontWeight: 600,
+                      }}
+                    />
                   </ListItem>
+                ) : (
+                  <>
+                    <ListItem
+                      button
+                      component={Link}
+                      to="/login"
+                      onClick={() => setDrawerOpen(false)}
+                    >
+                      <ListItemText
+                        primary="Login"
+                        primaryTypographyProps={{
+                          color:
+                            theme.palette.mode === 'dark'
+                              ? theme.palette.primary.light
+                              : theme.palette.primary.main,
+                          fontWeight: 600,
+                        }}
+                      />
+                    </ListItem>
+                    <ListItem
+                      button
+                      component={Link}
+                      to="/register"
+                      onClick={() => setDrawerOpen(false)}
+                    >
+                      <ListItemText
+                        primary="Register"
+                        primaryTypographyProps={{
+                          color:
+                            theme.palette.mode === 'dark'
+                              ? theme.palette.primary.light
+                              : theme.palette.primary.main,
+                          fontWeight: 600,
+                        }}
+                      />
+                    </ListItem>
+                  </>
                 )}
               </List>
             </Drawer>

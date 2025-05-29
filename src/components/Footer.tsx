@@ -19,7 +19,7 @@ const Footer: React.FC<FooterProps> = ({ mode }) => {
       borderTop: `1px solid ${theme.palette.divider}`,
     }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1.5rem' }}>
-        &copy; {new Date().getFullYear()} My Blog. All rights reserved.
+        &copy; {new Date().getFullYear()} MinimaLog. All rights reserved.
       </div>
     </footer>
   );

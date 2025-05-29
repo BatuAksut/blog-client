@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 
 const PostAdd: React.FC = () => {
-  const theme = useTheme();  // <--- Temayı aldık
+  const theme = useTheme();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [image, setImage] = useState<File | null>(null);
@@ -23,7 +23,7 @@ const PostAdd: React.FC = () => {
 
     const token = localStorage.getItem('token');
     if (!token) {
-      setError('Önce giriş yapmalısın!');
+      setError('You must log in first!');
       return;
     }
 
@@ -48,7 +48,7 @@ const PostAdd: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Post ekleme başarısız oldu.');
+        throw new Error(errorData.message || 'Failed to add post.');
       }
 
       navigate('/');
@@ -70,19 +70,19 @@ const PostAdd: React.FC = () => {
         p: 3,
         boxShadow: 3,
         borderRadius: 2,
-        backgroundColor: theme.palette.background.paper,  // tema uyumlu arka plan
+        backgroundColor: theme.palette.background.paper,
         display: 'flex', 
         flexDirection: 'column', 
         gap: 2,
-        color: theme.palette.text.primary,  // tema uyumlu yazı rengi
+        color: theme.palette.text.primary,
       }}
     >
       <Typography variant="h5" component="h1" textAlign="center" mb={2}>
-        Yeni Post Ekle
+        Add New Post
       </Typography>
       
       <TextField 
-        label="Başlık" 
+        label="Title" 
         variant="outlined" 
         value={title} 
         onChange={e => setTitle(e.target.value)} 
@@ -92,7 +92,7 @@ const PostAdd: React.FC = () => {
       />
       
       <TextField 
-        label="İçerik" 
+        label="Content" 
         variant="outlined" 
         multiline 
         rows={6} 
@@ -107,7 +107,7 @@ const PostAdd: React.FC = () => {
         variant="contained"
         component="label"
       >
-        {image ? 'Resim Seçildi' : 'Resim Yükle'}
+        {image ? 'Image Selected' : 'Upload Image'}
         <input
           type="file"
           accept="image/*"
@@ -120,13 +120,13 @@ const PostAdd: React.FC = () => {
       </Button>
       
       {loading ? (
-        <Button variant="contained" disabled sx={{ mt: 1 }}>
+        <Button variant="contained" disabled sx={{ mt: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
           <CircularProgress size={24} color="inherit" />
-          &nbsp;Ekleniyor...
+          Uploading...
         </Button>
       ) : (
         <Button type="submit" variant="contained" sx={{ mt: 1 }}>
-          Postu Ekle
+          Add Post
         </Button>
       )}
 

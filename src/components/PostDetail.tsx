@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import {
+  TextField,
+  Button,
+  Typography,
+  Box,
+  Divider,
+  Paper,
+} from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 interface User {
   id: string;
@@ -36,11 +45,19 @@ const PostDetail: React.FC = () => {
   const [posting, setPosting] = useState(false);
   const [postError, setPostError] = useState<string | null>(null);
 
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState('');
+
+  const theme = useTheme();
+  const currentUserId = localStorage.getItem('userId');
+
+  console.log('🚀 currentUserId:', currentUserId);
+
   useEffect(() => {
     const fetchPost = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
-        setError('Kullanıcı girişi yapılmamış');
+        setError('User not logged in');
         setLoading(false);
         return;
       }
@@ -60,7 +77,7 @@ const PostDetail: React.FC = () => {
         setLoading(false);
       }
     };
-    fetchPost();
+    if (id) fetchPost();
   }, [id]);
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
@@ -68,13 +85,13 @@ const PostDetail: React.FC = () => {
     setPostError(null);
 
     if (!newComment.trim()) {
-      setPostError('Yorum boş olamaz.');
+      setPostError('Comment cannot be empty.');
       return;
     }
 
     const token = localStorage.getItem('token');
     if (!token) {
-      setPostError('Kullanıcı girişi yapılmamış');
+      setPostError('User not logged in');
       return;
     }
 
@@ -93,7 +110,7 @@ const PostDetail: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`Yorum gönderilemedi. Status: ${response.status}`);
+        throw new Error(`Failed to send comment. Status: ${response.status}`);
       }
 
       const createdComment: Comment = await response.json();
@@ -105,72 +122,209 @@ const PostDetail: React.FC = () => {
       });
       setNewComment('');
     } catch (err: any) {
-      setPostError(err.message || 'Yorum gönderirken hata oluştu.');
+      setPostError(err.message || 'Error occurred while sending comment.');
     } finally {
       setPosting(false);
     }
   };
 
+  const handleDelete = async (commentId: string) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setPostError('Not logged in.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/Comments/${commentId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete comment.');
+      }
+
+      setPost(prev => {
+        if (!prev) return prev;
+        const updatedComments = prev.comments?.filter(c => c.id !== commentId);
+        return { ...prev, comments: updatedComments };
+      });
+    } catch (err: any) {
+      setPostError(err.message || 'Error occurred while deleting.');
+    }
+  };
+
+  const handleEdit = (comment: Comment) => {
+    setEditingCommentId(comment.id);
+    setEditingContent(comment.content);
+  };
+
+  const handleEditSubmit = async (commentId: string) => {
+  if (!editingContent.trim()) {
+    setPostError('Comment cannot be empty.');
+    return;
+  }
+
+  const token = localStorage.getItem('token');
+  if (!token) {
+    setPostError('Not logged in.');
+    return;
+  }
+
+  if (!post) {
+    setPostError('Post data missing.');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${BASE_URL}/api/Comments/${commentId}`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        content: editingContent.trim(),
+        blogPostId: post.id,  // Burayı ekledik kral!
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update comment.');
+    }
+
+    const updated: Comment = await response.json();
+
+    setPost(prev => {
+      if (!prev) return prev;
+      const updatedComments = prev.comments?.map(c =>
+        c.id === commentId ? { ...c, content: updated.content } : c
+      );
+      return { ...prev, comments: updatedComments };
+    });
+
+    setEditingCommentId(null);
+    setEditingContent('');
+    setPostError(null);
+  } catch (err: any) {
+    setPostError(err.message || 'Error occurred while updating.');
+  }
+};
+
   if (loading) return <div style={{ textAlign: 'center', padding: '2rem' }}>Loading post...</div>;
   if (error) return <div style={{ textAlign: 'center', padding: '2rem', color: 'red' }}>Error: {error}</div>;
-  if (!post) return <div>Post bulunamadı.</div>;
+  if (!post) return <div>Post not found.</div>;
 
   return (
     <div style={{ maxWidth: 700, margin: 'auto', padding: '2rem' }}>
-      <h1 style={{ textTransform: 'uppercase' }}>{post.title}</h1>
-      <p style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
-        <em>Yazar: {post.user ? `${post.user.firstname} ${post.user.lastname}` : 'Bilinmiyor'}</em>
-      </p>
+      <Typography variant="h4" gutterBottom sx={{ textTransform: 'uppercase' }}>
+        {post.title}
+      </Typography>
+
+      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+        <em>Author: {post.user ? `${post.user.firstname} ${post.user.lastname}` : 'Unknown'}</em>
+      </Typography>
+
       <img
         src={post.imageUrl ? `${BASE_URL}${post.imageUrl}` : 'https://dummyimage.com/700x400/cccccc/000000&text=No+Image'}
         alt={post.title}
-        style={{ width: '100%', maxHeight: 400, objectFit: 'cover' }}
+        style={{ width: '100%', maxHeight: 400, objectFit: 'cover', borderRadius: 8 }}
       />
-      <p style={{ whiteSpace: 'pre-wrap', marginTop: '1rem' }}>{post.content}</p>
 
-      <hr style={{ marginTop: '3rem', marginBottom: '1rem' }} />
+      <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', mt: 2 }}>
+        {post.content}
+      </Typography>
 
-      <h2>Yorumlar</h2>
+      {/* Comments */}
+      <Divider sx={{ marginTop: 5, marginBottom: 2 }} />
+      <Typography variant="h5" gutterBottom>Comments</Typography>
+
       {post.comments && post.comments.length > 0 ? (
-        post.comments.map(comment => (
-          <div key={comment.id} style={{ marginBottom: '1rem', padding: '0.5rem', border: '1px solid #ccc', borderRadius: 4 }}>
-            <p>
-              <strong>{comment.user.firstname} {comment.user.lastname}</strong>
-            </p>
-            <p>{comment.content}</p>
-          </div>
-        ))
+        post.comments.map(comment => {
+          const isOwnComment = comment.user?.id === currentUserId;
+
+          return (
+            <Paper key={comment.id} elevation={2} sx={{
+              padding: 2,
+              marginBottom: 2,
+              backgroundColor: theme.palette.background.paper,
+              borderLeft: `4px solid ${theme.palette.primary.main}`,
+              position: 'relative',
+            }}>
+              <Typography variant="subtitle1" fontWeight="bold">
+                {comment.user ? `${comment.user.firstname} ${comment.user.lastname}` : 'Anonymous'}
+              </Typography>
+
+              {editingCommentId === comment.id ? (
+                <Box>
+                  <TextField
+                    multiline
+                    fullWidth
+                    rows={2}
+                    value={editingContent}
+                    onChange={e => setEditingContent(e.target.value)}
+                    sx={{ my: 1 }}
+                  />
+                  <Button size="small" onClick={() => handleEditSubmit(comment.id)} variant="contained">
+                    Save
+                  </Button>
+                  <Button size="small" onClick={() => setEditingCommentId(null)} sx={{ ml: 1 }}>
+                    Cancel
+                  </Button>
+                </Box>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  {comment.content}
+                </Typography>
+              )}
+
+              {isOwnComment && editingCommentId !== comment.id && (
+                <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 1 }}>
+                  <Button size="small" variant="outlined" onClick={() => handleEdit(comment)}>Edit</Button>
+                  <Button size="small" variant="outlined" color="error" onClick={() => handleDelete(comment.id)}>Delete</Button>
+                </Box>
+              )}
+            </Paper>
+          );
+        })
       ) : (
-        <p>Henüz yorum yok.</p>
+        <Typography variant="body1" color="text.secondary">No comments yet.</Typography>
       )}
 
-      <form onSubmit={handleCommentSubmit} style={{ marginTop: '2rem' }}>
-        <h3>Yeni Yorum Ekle</h3>
-        <textarea
+      {/* Add Comment Form */}
+      <Box component="form" onSubmit={handleCommentSubmit} sx={{ marginTop: 4 }}>
+        <Typography variant="h6" gutterBottom>Add New Comment</Typography>
+
+        <TextField
+          label="Write your comment"
+          multiline
+          rows={4}
+          fullWidth
           value={newComment}
           onChange={e => setNewComment(e.target.value)}
-          rows={4}
-          style={{ width: '100%', padding: '0.5rem', fontSize: '1rem' }}
-          placeholder="Yorumunuzu yazın..."
+          variant="outlined"
           disabled={posting}
         />
-        {postError && <p style={{ color: 'red' }}>{postError}</p>}
-        <button
+
+        {postError && (
+          <Typography variant="body2" color="error" sx={{ marginTop: 1 }}>
+            {postError}
+          </Typography>
+        )}
+
+        <Button
           type="submit"
+          variant="contained"
+          color="primary"
           disabled={posting}
-          style={{
-            marginTop: '0.5rem',
-            padding: '0.5rem 1rem',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: 4,
-            cursor: posting ? 'not-allowed' : 'pointer',
-          }}
+          sx={{ marginTop: 2 }}
         >
-          {posting ? 'Gönderiliyor...' : 'Yorumu Gönder'}
-        </button>
-      </form>
+          {posting ? 'Sending...' : 'Send Comment'}
+        </Button>
+      </Box>
     </div>
   );
 };

@@ -20,7 +20,7 @@ const PostList: React.FC = () => {
 
   useEffect(() => {
     if (!token) {
-      setError('Kullanıcı girişi yapılmamış');
+      setError('User not logged in');
       setLoading(false);
       return;
     }
@@ -48,11 +48,11 @@ const PostList: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     if (!token) {
-      alert('Kullanıcı girişi yapılmamış');
+      alert('User not logged in');
       return;
     }
 
-    if (!window.confirm('Bu postu silmek istediğine emin misin')) return;
+    if (!window.confirm('Are you sure you want to delete this post?')) return;
 
     try {
       const response = await fetch(`${BASE_URL}/api/BlogPosts/${id}`, {
@@ -62,17 +62,17 @@ const PostList: React.FC = () => {
         },
       });
       if (response.status === 204) {
-        // Başarılı silme, state'ten çıkar
+        // Successful deletion, remove from state
         setPosts(posts.filter(post => post.id !== id));
       } else if (response.status === 403) {
-        alert('Bu işlemi yapmaya yetkin yok');
+        alert('You do not have permission to perform this action');
       } else if (response.status === 404) {
-        alert('Post bulunamadı.');
+        alert('Post not found.');
       } else {
-        alert('Post silinirken bir hata oluştu.');
+        alert('An error occurred while deleting the post.');
       }
     } catch (err) {
-      alert('Sunucuya bağlanırken hata oldu.');
+      alert('Error connecting to the server.');
     }
   };
 
@@ -88,7 +88,7 @@ const PostList: React.FC = () => {
             title={post.title}
             content={post.content}
             imageUrl={post.imageUrl ? `${BASE_URL}${post.imageUrl}` : 'https://dummyimage.com/400x225/cccccc/000000&text=No+Image'}
-            onDelete={handleDelete} // Yeni prop
+            onDelete={handleDelete} // New prop
           />
         </Grid>
       ))}
