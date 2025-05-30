@@ -19,19 +19,16 @@ const PostList: React.FC = () => {
   const token = localStorage.getItem('token');
 
   useEffect(() => {
-    if (!token) {
-      setError('User not logged in');
-      setLoading(false);
-      return;
-    }
-
     const fetchPosts = async () => {
       try {
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
         const response = await fetch(`${BASE_URL}/api/BlogPosts?pageNumber=1&pageSize=1000`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+          headers,
         });
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data: Post[] = await response.json();
@@ -62,7 +59,6 @@ const PostList: React.FC = () => {
         },
       });
       if (response.status === 204) {
-        
         setPosts(posts.filter(post => post.id !== id));
       } else if (response.status === 403) {
         alert('You do not have permission to perform this action');
@@ -77,7 +73,8 @@ const PostList: React.FC = () => {
   };
 
   if (loading) return <div style={{ textAlign: 'center', padding: '2rem' }}>Loading posts...</div>;
-  if (error) return <div style={{ textAlign: 'center', padding: '2rem', color: 'red' }}>Error: {error}</div>;
+
+  if (error) return <div style={{ textAlign: 'center', padding: '2rem', color: 'red', fontSize: '1.2rem' }}>Error: {error}</div>;
 
   return (
     <Grid container spacing={3} justifyContent="center" gap={5}>

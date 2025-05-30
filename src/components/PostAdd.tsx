@@ -6,7 +6,9 @@ import {
   TextField, 
   Typography, 
   CircularProgress,
-  useTheme
+  useTheme,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 
 const PostAdd: React.FC = () => {
@@ -16,6 +18,7 @@ const PostAdd: React.FC = () => {
   const [image, setImage] = useState<File | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,12 +54,17 @@ const PostAdd: React.FC = () => {
         throw new Error(errorData.message || 'Failed to add post.');
       }
 
-      navigate('/');
+      setSuccess(true);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSnackbarClose = () => {
+    setSuccess(false);
+    navigate('/'); // Başarılı post ekledikten sonra anasayfaya git
   };
 
   return (
@@ -135,6 +143,29 @@ const PostAdd: React.FC = () => {
           {error}
         </Typography>
       )}
+
+      <Snackbar
+        open={success}
+        autoHideDuration={2000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleSnackbarClose}
+          severity="success"
+          sx={{
+            width: '100%',
+            maxWidth: '500px',
+            mx: 'auto',
+            fontSize: '1.1rem',
+            fontWeight: 'bold',
+            p: 2,
+            textAlign: 'center',
+          }}
+        >
+          Post created successfully! 🎉
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
