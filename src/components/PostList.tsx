@@ -62,7 +62,7 @@ const PostList: React.FC = () => {
         },
       });
       if (response.status === 204) {
-        // Successful deletion, remove from state
+        
         setPosts(posts.filter(post => post.id !== id));
       } else if (response.status === 403) {
         alert('You do not have permission to perform this action');
@@ -88,7 +88,7 @@ const PostList: React.FC = () => {
             title={post.title}
             content={post.content}
             imageUrl={post.imageUrl ? `${BASE_URL}${post.imageUrl}` : 'https://dummyimage.com/400x225/cccccc/000000&text=No+Image'}
-            onDelete={handleDelete} // New prop
+            onDelete={handleDelete} 
           />
         </Grid>
       ))}

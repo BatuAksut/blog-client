@@ -51,8 +51,6 @@ const PostDetail: React.FC = () => {
   const theme = useTheme();
   const currentUserId = localStorage.getItem('userId');
 
-  console.log('🚀 currentUserId:', currentUserId);
-
   useEffect(() => {
     const fetchPost = async () => {
       const token = localStorage.getItem('token');
@@ -163,64 +161,84 @@ const PostDetail: React.FC = () => {
   };
 
   const handleEditSubmit = async (commentId: string) => {
-  if (!editingContent.trim()) {
-    setPostError('Comment cannot be empty.');
-    return;
-  }
-
-  const token = localStorage.getItem('token');
-  if (!token) {
-    setPostError('Not logged in.');
-    return;
-  }
-
-  if (!post) {
-    setPostError('Post data missing.');
-    return;
-  }
-
-  try {
-    const response = await fetch(`${BASE_URL}/api/Comments/${commentId}`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        content: editingContent.trim(),
-        blogPostId: post.id,  // Burayı ekledik kral!
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to update comment.');
+    if (!editingContent.trim()) {
+      setPostError('Comment cannot be empty.');
+      return;
     }
 
-    const updated: Comment = await response.json();
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setPostError('Not logged in.');
+      return;
+    }
 
-    setPost(prev => {
-      if (!prev) return prev;
-      const updatedComments = prev.comments?.map(c =>
-        c.id === commentId ? { ...c, content: updated.content } : c
-      );
-      return { ...prev, comments: updatedComments };
-    });
+    if (!post) {
+      setPostError('Post data missing.');
+      return;
+    }
 
-    setEditingCommentId(null);
-    setEditingContent('');
-    setPostError(null);
-  } catch (err: any) {
-    setPostError(err.message || 'Error occurred while updating.');
-  }
-};
+    try {
+      const response = await fetch(`${BASE_URL}/api/Comments/${commentId}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: editingContent.trim(),
+          blogPostId: post.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update comment.');
+      }
+
+      const updated: Comment = await response.json();
+
+      setPost(prev => {
+        if (!prev) return prev;
+        const updatedComments = prev.comments?.map(c =>
+          c.id === commentId ? { ...c, content: updated.content } : c
+        );
+        return { ...prev, comments: updatedComments };
+      });
+
+      setEditingCommentId(null);
+      setEditingContent('');
+      setPostError(null);
+    } catch (err: any) {
+      setPostError(err.message || 'Error occurred while updating.');
+    }
+  };
 
   if (loading) return <div style={{ textAlign: 'center', padding: '2rem' }}>Loading post...</div>;
   if (error) return <div style={{ textAlign: 'center', padding: '2rem', color: 'red' }}>Error: {error}</div>;
   if (!post) return <div>Post not found.</div>;
 
   return (
-    <div style={{ maxWidth: 700, margin: 'auto', padding: '2rem' }}>
-      <Typography variant="h4" gutterBottom sx={{ textTransform: 'uppercase' }}>
+    <div style={{ maxWidth: 700, margin: 'auto' }}>
+      <Typography
+        variant="h4"
+        gutterBottom
+        sx={{
+          textTransform: 'uppercase',
+          fontSize: {
+            xs: '1.6rem',
+            sm: '2.5rem',
+            md: '3rem',
+          },
+          textAlign: {
+            xs: 'center',
+          },
+          px: {
+            xs: 2,
+            sm: 0,
+          },
+          wordBreak: 'break-word',
+          hyphens: 'auto',
+        }}
+      >
         {post.title}
       </Typography>
 
@@ -234,11 +252,34 @@ const PostDetail: React.FC = () => {
         style={{ width: '100%', maxHeight: 400, objectFit: 'cover', borderRadius: 8 }}
       />
 
-      <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', mt: 2 }}>
+      <Typography
+        variant="body1"
+        sx={{
+          whiteSpace: 'pre-wrap',
+          mt: 2,
+          fontSize: {
+            xs: '0.9rem',
+            sm: '1rem',
+            md: '1.1rem',
+          },
+          px: {
+            xs: 2,
+            sm: 0,
+          },
+          textAlign: {
+            xs: 'justify',
+            sm: 'left',
+          },
+          textAlignLast: {
+            xs: 'left',
+          },
+          wordBreak: 'break-word',
+          hyphens: 'auto',
+        }}
+      >
         {post.content}
       </Typography>
 
-      {/* Comments */}
       <Divider sx={{ marginTop: 5, marginBottom: 2 }} />
       <Typography variant="h5" gutterBottom>Comments</Typography>
 
@@ -294,7 +335,6 @@ const PostDetail: React.FC = () => {
         <Typography variant="body1" color="text.secondary">No comments yet.</Typography>
       )}
 
-      {/* Add Comment Form */}
       <Box component="form" onSubmit={handleCommentSubmit} sx={{ marginTop: 4 }}>
         <Typography variant="h6" gutterBottom>Add New Comment</Typography>
 

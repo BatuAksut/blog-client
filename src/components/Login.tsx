@@ -10,7 +10,7 @@ import {
   useTheme
 } from '@mui/material';
 
-// Helper function to parse JWT payload
+
 function parseJwt(token: string) {
   try {
     const base64Url = token.split('.')[1];
@@ -46,10 +46,10 @@ const Login: React.FC = () => {
 
     const data = await res.json();
 
-    // Save token to localStorage
+   
     localStorage.setItem('token', data.jwtToken);
 
-    // Extract info from token
+
     const payload = parseJwt(data.jwtToken);
 if (payload) {
   const userId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];

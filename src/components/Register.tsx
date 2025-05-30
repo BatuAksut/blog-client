@@ -32,11 +32,11 @@ const Register: React.FC = () => {
           password,
           firstname,
           lastname,
-          roles: ["writer"], // İsteğe göre roller eklenebilir
+          roles: ["Writer"], 
         }),
       });
 
-      if (!response.ok) {
+      if (!response.ok) { 
         const errorData = await response.json();
         const errorMessage = errorData?.message || 'Registration failed';
         setError(errorMessage);
